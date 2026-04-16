@@ -1,57 +1,95 @@
 # genesis-sync
 
-> CLI tool for keeping Genesis projects up to date.
+> Inspect Genesis ecosystem package drift without writing downstream changes.
 
 ## What This Is
 
-Utility CLI that checks for and applies updates to `@olwiba/*` and `@genesis/*` packages across your projects.
+`genesis-sync` is the Phase 7 maintenance tool for the narrowest trustworthy sync contract:
+- inspect ecosystem package/version drift against the live registry
+- inspect consumer project package usage
+- report recommended updates
+- stay read-only
 
 ## Package
 
 ```
 npm: genesis-sync
-registry: private (Verdaccio)
+registry: private
 ```
 
 ## Status
 
-**Future implementation** — Not yet built.
+**Implemented read-only v2 inspection path — consumer-first, registry-based**.
 
-## Planned Features
+## Supported Now
 
-- Check for outdated packages
-- Update `@olwiba/cn`, `@olwiba/ui`, `@genesis/renderer`
-- Run migrations if schema changes
-- Multi-project sync support
+- read-only `check` command
+- live registry baseline fetch from GitHub Packages (`@olwiba/cn`, `@olwiba/docs`, `@olwiba/ui`)
+- drift inspection across consumer project manifests
+- recommended update reporting for exact version drift
+- compatibility/manual-review notes for ranged package specs
+- defaults to current working directory when no path is given
 
-## Planned Usage
+## Requirements
+
+`PACKAGES_TOKEN` — a GitHub token with `read:packages` scope.
+
+The `@olwiba/*` packages are private. You need access from the repository owner.
+Copy `.env.example` to `.env` and fill in your token, or pass it inline.
+
+## Usage
 
 ```bash
-# Check for updates
-genesis-sync check
+# Check the project in the current directory
+genesis-sync
 
-# Update packages
-genesis-sync update
+# Check an explicit path
+genesis-sync check /path/to/my-project
 
-# Update all projects in a directory
-genesis-sync update --all ./projects/
+# Check multiple paths
+genesis-sync check /path/to/project-a /path/to/project-b
+
+# Inline token
+PACKAGES_TOKEN=ghp_... genesis-sync check
 ```
 
-## Planned Flow
+## What It Does Not Support Yet
+
+- automatic package.json updates
+- dependency installation
+- migrations
+- release automation
+- multi-project directory crawling
+- lockfile inspection or node_modules verification
+
+## Output Contract
 
 ```
 $ genesis-sync check
 
-Checking @olwiba/cn... 1.0.0 → 1.2.0 (update available)
-Checking @olwiba/ui... 1.1.0 → 1.2.0 (update available)
-Checking @genesis/renderer... 1.0.0 (up to date)
+genesis-sync — read-only package drift inspection
 
-$ genesis-sync update
+Fetching current ecosystem package versions from registry...
 
-Updating @olwiba/cn to 1.2.0... done
-Updating @olwiba/ui to 1.2.0... done
-Running migrations... none required
-Done!
+Mode: inspection only
+Current ecosystem package baseline (from registry):
+- @olwiba/cn 0.1.12
+- @olwiba/docs 0.1.13
+- @olwiba/ui 0.0.20
+
+Consumer project usage
+
+my-project
+- manifest: /path/to/my-project/package.json
+- summary: 1 update recommended, 0 manual review, 0 ahead of baseline, 1 up to date
+- [dependencies] @olwiba/cn 0.1.11 -> 0.1.12 | recommended update to 0.1.12
+- [dependencies] @olwiba/ui 0.0.20 | up to date
+
+Recommended updates
+- my-project [dependencies] @olwiba/cn 0.1.11 -> 0.1.12
+
+Compatibility notes
+- none
 ```
 
 ## Related
