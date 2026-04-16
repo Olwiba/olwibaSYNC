@@ -45,6 +45,8 @@ const REGISTRY_URL = 'https://npm.pkg.github.com';
 const ECOSYSTEM_PACKAGES = [
   '@olwiba/cn',
   '@olwiba/docs',
+  '@olwiba/genesis-render',
+  '@olwiba/genesis-sync',
   '@olwiba/ui',
 ];
 
