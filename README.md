@@ -4,7 +4,7 @@
 
 ## What This Is
 
-`genesis-sync` is the Phase 7 maintenance tool for the narrowest trustworthy sync contract:
+`@olwiba/genesis-sync` is the Phase 7 maintenance tool for the narrowest trustworthy sync contract:
 - inspect ecosystem package/version drift against the live registry
 - inspect consumer project package usage
 - report recommended updates
@@ -13,29 +13,44 @@
 ## Package
 
 ```
-npm: genesis-sync
-registry: private
+npm: @olwiba/genesis-sync
+registry: https://npm.pkg.github.com (GitHub Packages, private)
 ```
 
 ## Status
 
 **Implemented read-only v2 inspection path — consumer-first, registry-based**.
 
-## Supported Now
+## Setup
 
-- read-only `check` command
-- live registry baseline fetch from GitHub Packages (`@olwiba/cn`, `@olwiba/docs`, `@olwiba/ui`)
-- drift inspection across consumer project manifests
-- recommended update reporting for exact version drift
-- compatibility/manual-review notes for ranged package specs
-- defaults to current working directory when no path is given
+The `@olwiba/*` packages are private. You need a GitHub token with `read:packages` scope.
 
-## Requirements
+**1. Configure your registry in `bunfig.toml`** (same setup you already have for `@olwiba/cn`):
 
-`PACKAGES_TOKEN` — a GitHub token with `read:packages` scope.
+```toml
+[install.scopes]
+"@olwiba" = { token = "ghp_...", url = "https://npm.pkg.github.com/" }
+```
 
-The `@olwiba/*` packages are private. You need access from the repository owner.
-Copy `.env.example` to `.env` and fill in your token, or pass it inline.
+**2. Add your token to `.env`**:
+
+```
+PACKAGES_TOKEN=ghp_...
+```
+
+See `.env.example` for the full list.
+
+## Install
+
+```bash
+bun add @olwiba/genesis-sync
+```
+
+Or run directly without installing:
+
+```bash
+bunx @olwiba/genesis-sync check
+```
 
 ## Usage
 
@@ -52,6 +67,15 @@ genesis-sync check /path/to/project-a /path/to/project-b
 # Inline token
 PACKAGES_TOKEN=ghp_... genesis-sync check
 ```
+
+## Supported Now
+
+- read-only `check` command
+- live registry baseline fetch from GitHub Packages (`@olwiba/cn`, `@olwiba/docs`, `@olwiba/ui`)
+- drift inspection across consumer project manifests
+- recommended update reporting for exact version drift
+- compatibility/manual-review notes for ranged package specs
+- defaults to current working directory when no path is given
 
 ## What It Does Not Support Yet
 

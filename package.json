@@ -1,0 +1,31 @@
+{
+  "name": "@olwiba/genesis-sync",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Inspect Genesis ecosystem package drift without writing downstream changes",
+  "bin": {
+    "genesis-sync": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.5.4",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Olwiba/genesis-sync"
+  },
+  "author": "Olwiba",
+  "license": "MIT"
+}
