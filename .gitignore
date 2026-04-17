@@ -10,6 +10,10 @@ bunfig.toml
 # Environment
 .env
 .env.local
+.env.production
+
+# Windows crash dumps
+*.stackdump
 
 # IDE
 .vscode/
