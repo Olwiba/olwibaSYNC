@@ -27,5 +27,8 @@
     "url": "https://github.com/Olwiba/genesis-sync"
   },
   "author": "Olwiba",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@olwiba/dx": "0.0.2"
+  }
 }
