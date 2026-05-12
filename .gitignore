@@ -5,7 +5,6 @@ node_modules/
 dist/
 
 # Auth tokens
-bunfig.toml
 
 # Environment
 .env
