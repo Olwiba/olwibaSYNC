@@ -1,12 +1,8 @@
 #!/usr/bin/env bun
 import { printBanner } from '@olwiba/dx';
+import { projectBanner } from './project.config';
 
-await printBanner({
-  segments: [
-    { text: 'genesis' },
-    { text: 'sync', colorHex: '#14b8a6' },
-  ],
-});
+await printBanner(projectBanner);
 
 import { existsSync, readFileSync } from 'fs';
 import { basename, dirname, join, resolve } from 'path';
