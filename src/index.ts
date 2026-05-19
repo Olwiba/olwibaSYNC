@@ -45,14 +45,20 @@ type UsageAnalysis = {
 
 const HELP_FLAGS = new Set(['-h', '--help']);
 const SECTION_ORDER: PackageSection[] = ['dependencies', 'devDependencies', 'peerDependencies'];
-const REGISTRY_URL = 'https://npm.pkg.github.com';
+const NPM_REGISTRY = 'https://registry.npmjs.org';
+const GITHUB_PACKAGES_REGISTRY = 'https://npm.pkg.github.com';
 
-const ECOSYSTEM_PACKAGES = [
+// Public packages — on public npmjs.org, no auth needed
+const PUBLIC_ECOSYSTEM_PACKAGES = [
   '@olwiba/cn',
   '@olwiba/docs',
+  '@olwiba/ui',
+];
+
+// Private packages — on GitHub Packages, require PACKAGES_TOKEN
+const PRIVATE_ECOSYSTEM_PACKAGES = [
   '@olwiba/genesis-render',
   '@olwiba/genesis-sync',
-  '@olwiba/ui',
 ];
 
 function printHelp() {
@@ -66,42 +72,30 @@ Usage:
   genesis-sync check
   genesis-sync check <project-dir> [more-project-dirs...]
 
-Requirements:
+Optional:
   PACKAGES_TOKEN — GitHub token with read:packages scope
+  Required only to include private packages (genesis-render, genesis-sync) in the baseline.
+  Public packages (cn, docs, ui) are always checked without a token.
 
 Default target:
   current working directory
 `);
 }
 
-function getToken(): string {
-  const token = process.env.PACKAGES_TOKEN;
-  if (!token) {
-    console.error(
-      'Error: PACKAGES_TOKEN is not set.\n' +
-      'genesis-sync needs a GitHub token with read:packages scope to fetch the current\n' +
-      'published versions of @olwiba/* and @genesis/* packages from the registry.\n' +
-      '\n' +
-      'Copy .env.example to .env and fill in your token, or set it inline:\n' +
-      '  PACKAGES_TOKEN=ghp_... genesis-sync check'
-    );
-    process.exit(1);
-  }
-  return token;
-}
-
-async function fetchLatestVersion(packageName: string, token: string): Promise<string> {
+async function fetchLatestVersion(packageName: string, registry: string, token?: string): Promise<string> {
   const encodedName = packageName.replace('/', '%2F');
-  const url = `${REGISTRY_URL}/${encodedName}`;
+  const url = `${registry}/${encodedName}`;
+
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.npm.install-v1+json',
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   let response: Response;
   try {
-    response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.npm.install-v1+json',
-      },
-    });
+    response = await fetch(url, { headers });
   } catch (error) {
     throw new Error(
       `Network error fetching ${packageName} from registry: ${error instanceof Error ? error.message : String(error)}`
@@ -111,7 +105,7 @@ async function fetchLatestVersion(packageName: string, token: string): Promise<s
   if (!response.ok) {
     throw new Error(
       `Registry returned HTTP ${response.status} for ${packageName}.\n` +
-      `Check that GITHUB_PACKAGES_TOKEN has read:packages scope and the package exists at ${REGISTRY_URL}.`
+      `Check that the package exists at ${registry}${token ? '' : ' (no auth token provided)'}.`
     );
   }
 
@@ -127,14 +121,24 @@ async function fetchLatestVersion(packageName: string, token: string): Promise<s
   return latest;
 }
 
-async function loadTrackedPackages(token: string): Promise<Map<string, TrackedPackage>> {
-  const results = await Promise.allSettled(
-    ECOSYSTEM_PACKAGES.map(async (name) => {
-      const version = await fetchLatestVersion(name, token);
-      return { name, version };
-    })
-  );
+async function loadTrackedPackages(token?: string): Promise<Map<string, TrackedPackage>> {
+  const publicFetches = PUBLIC_ECOSYSTEM_PACKAGES.map(async (name) => {
+    const version = await fetchLatestVersion(name, NPM_REGISTRY);
+    return { name, version };
+  });
 
+  if (!token && PRIVATE_ECOSYSTEM_PACKAGES.length > 0) {
+    console.warn(`Note: PACKAGES_TOKEN not set — skipping private packages: ${PRIVATE_ECOSYSTEM_PACKAGES.join(', ')}`);
+  }
+
+  const privateFetches = token
+    ? PRIVATE_ECOSYSTEM_PACKAGES.map(async (name) => {
+        const version = await fetchLatestVersion(name, GITHUB_PACKAGES_REGISTRY, token);
+        return { name, version };
+      })
+    : [];
+
+  const results = await Promise.allSettled([...publicFetches, ...privateFetches]);
   const trackedPackages = new Map<string, TrackedPackage>();
 
   for (const result of results) {
@@ -345,7 +349,7 @@ async function main() {
     throw new Error(`Unsupported command: ${command}. Only "check" is available in read-only v1.`);
   }
 
-  const token = getToken();
+  const token = process.env.PACKAGES_TOKEN;
 
   console.log('genesis-sync — read-only package drift inspection');
   console.log('');

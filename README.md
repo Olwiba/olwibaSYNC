@@ -23,22 +23,15 @@ registry: https://npm.pkg.github.com (GitHub Packages, private)
 
 ## Setup
 
-The `@olwiba/*` packages are private. You need a GitHub token with `read:packages` scope.
+`@olwiba/cn`, `@olwiba/docs`, and `@olwiba/ui` are on public npm — no token needed to check those.
 
-**1. Configure your registry in `bunfig.toml`** (same setup you already have for `@olwiba/cn`):
-
-```toml
-[install.scopes]
-"@olwiba" = { token = "ghp_...", url = "https://npm.pkg.github.com/" }
-```
-
-**2. Add your token to `.env`**:
+To also include private packages (`@olwiba/genesis-render`, `@olwiba/genesis-sync`) in the baseline, add a GitHub token with `read:packages` scope to `.env`:
 
 ```
 PACKAGES_TOKEN=ghp_...
 ```
 
-See `.env.example` for the full list.
+See `.env.example` for details. If `PACKAGES_TOKEN` is not set, private packages are skipped with a warning and public packages are still checked.
 
 ## Install
 
@@ -71,7 +64,7 @@ PACKAGES_TOKEN=ghp_... genesis-sync check
 ## Supported Now
 
 - read-only `check` command
-- live registry baseline fetch from GitHub Packages (`@olwiba/cn`, `@olwiba/docs`, `@olwiba/ui`)
+- live registry baseline fetch from public npm (`@olwiba/cn`, `@olwiba/docs`, `@olwiba/ui`) and optionally GitHub Packages for private packages
 - drift inspection across consumer project manifests
 - recommended update reporting for exact version drift
 - compatibility/manual-review notes for ranged package specs
