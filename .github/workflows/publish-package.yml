@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   publish:
@@ -23,9 +22,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          registry-url: https://npm.pkg.github.com
-          scope: '@olwiba'
+          node-version: 24
+          registry-url: https://registry.npmjs.org
 
       - name: Install
         run: bun install --frozen-lockfile
@@ -49,15 +47,15 @@ jobs:
           mkdir -p artifacts
           npm pack --pack-destination artifacts
 
-      - name: Publish to GitHub Packages (if needed)
+      - name: Publish to npm
         run: |
-          if npm view "${PKG_NAME}@${PKG_VERSION}" --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+          if npm view "${PKG_NAME}@${PKG_VERSION}" --registry=https://registry.npmjs.org >/dev/null 2>&1; then
             echo "Package ${PKG_NAME}@${PKG_VERSION} already exists. Skipping publish."
           else
-            npm publish
+            npm publish --access public
           fi
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         run: |
