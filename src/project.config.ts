@@ -2,13 +2,13 @@ export const projectConfig = {
   id: 'genesis-sync',
   label: 'genesis-sync',
   brandAccent: {
-    hex: '#14b8a6',
+    hex: '#10b981',
   },
 } as const
 
 export const projectBanner = {
   segments: [
-    { text: 'genesis' },
-    { text: 'sync', colorHex: projectConfig.brandAccent.hex },
+    { text: 'genesis', colorHex: projectConfig.brandAccent.hex },
+    { text: 'sync' },
   ],
 }

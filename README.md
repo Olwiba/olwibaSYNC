@@ -1,10 +1,33 @@
-# genesis-sync
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="./public/genesis-sync--light.gif" />
+    <source media="(prefers-color-scheme: dark)" srcset="./public/genesis-sync.gif" />
+    <img src="./public/genesis-sync.gif" alt="genesis-sync" style="width: 100%;" />
+  </picture>
+</p>
 
-> Read-only drift inspector for the Genesis ecosystem.
+<p align="center">
+  <strong>Read-only package drift inspector for the Genesis ecosystem.</strong>
+</p>
 
-Checks your project's `@olwiba/*` package versions against the live registry and reports what's out of date. No writes, no installs — inspect only.
+<p align="center">
+  <a href="https://github.com/Olwiba/genesis-sync/issues/new?template=bug_report.md">🪲 Report a bug</a> ·
+  <a href="https://github.com/Olwiba/genesis-sync/issues/new?template=feature_request.md">✨ Feature request</a>
+</p>
 
-## Install
+<p align="center">
+  <a href="https://github.com/sponsors/Olwiba"><img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=22c55e" alt="Sponsor" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Olwiba/genesis-sync?label=license&logo=github" alt="License" /></a>
+  <a href="https://github.com/Olwiba/genesis-sync/issues"><img src="https://img.shields.io/github/issues/Olwiba/genesis-sync" alt="Issues" /></a>
+</p>
+
+## What This Is
+
+`@olwiba/genesis-sync` checks your project's `@olwiba/*` package versions against the live registry and reports what's out of date.
+
+No writes, no installs — inspect only.
+
+## Installation
 
 ```bash
 bun add @olwiba/genesis-sync
@@ -29,52 +52,37 @@ genesis-sync check /path/to/my-project
 genesis-sync check /path/to/project-a /path/to/project-b
 ```
 
-## Token (optional)
-
-Public packages (`@olwiba/cn`, `@olwiba/docs`, `@olwiba/ui`) are checked without any token.
-
-To also include private packages (`@olwiba/genesis-render`, `@olwiba/genesis-sync`) in the baseline, add a GitHub token with `read:packages` scope:
+Private packages require a GitHub token with `read:packages` scope:
 
 ```bash
 PACKAGES_TOKEN=ghp_... genesis-sync
 ```
 
-Or set it in `.env` — see `.env.example`.
+## What's Included
 
-## Example output
+**Drift report** Compares installed `@olwiba/*` versions against the live registry  
+**Recommended updates** Lists exact version bumps needed per project  
+**Multi-project** Check multiple consumer projects in one command  
+**Read-only** Never modifies `package.json` or installs anything  
 
-```
-genesis-sync - read-only package drift inspection
+## Ecosystem
 
-Fetching current ecosystem package versions from registry...
+- [genesis](https://github.com/Olwiba/genesis) — the baseline being tracked
+- [@olwiba/genesis-start](https://github.com/Olwiba/genesis-start) — scaffold a new baseline
+- [@olwiba/cn](https://github.com/Olwiba/olwibaCN) — base UI primitives
 
-Mode: inspection only
-Current ecosystem package baseline (from registry):
-- @olwiba/cn 0.1.15
-- @olwiba/docs 0.1.25
-- @olwiba/ui 0.0.28
+## Contributing
 
-Consumer project usage
+Bug reports, pull requests & feature requests are welcome.
+Open an issue first for anything beyond a small fix.
 
-my-project
-- manifest: /path/to/my-project/package.json
-- summary: 1 update recommended, 0 manual review, 0 ahead of baseline, 1 up to date
-- [dependencies] @olwiba/cn 0.1.14 -> 0.1.15 | recommended update
-- [dependencies] @olwiba/ui 0.0.28 | up to date
+<br/>
+<br/>
 
-Recommended updates
-- my-project [dependencies] @olwiba/cn 0.1.14 -> 0.1.15
-```
+<p align="center">
+  Built with 💖 by <a href="https://github.com/Olwiba">Olwiba</a>
+</p>
 
-## What it does
-
-- Fetches current `@olwiba/*` versions from the live registry
-- Compares against consumer project `package.json` manifests
-- Reports exact version drift as recommended updates
-- Reports ranged specs as compatibility notes
-- Read-only — never modifies files
-
-## Related
-
-- [genesis](https://github.com/Olwiba/genesis) - Template
-- [genesis-start](https://github.com/Olwiba/genesis-start) - Scaffolding CLI
+<p align="center">
+  <a href="https://buymeacoffee.com/olwiba"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy Me A Coffee" /></a>
+</p>
