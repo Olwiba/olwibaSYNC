@@ -1,35 +1,35 @@
 {
   "name": "@olwiba/genesis-sync",
   "version": "0.1.1",
-  "private": false,
-  "type": "module",
-  "description": "Inspect Genesis ecosystem package drift without writing downstream changes",
-  "bin": {
-    "genesis-sync": "./src/index.ts"
-  },
-  "files": [
-    "src"
-  ],
-  "scripts": {
-    "dev": "bun run src/index.ts",
-    "typecheck": "tsc --noEmit"
+  "author": "Olwiba",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Olwiba/genesis-sync"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^22.5.4",
     "typescript": "^5.7.2"
   },
+  "bin": {
+    "genesis-sync": "./src/index.ts"
+  },
+  "description": "Inspect Genesis ecosystem package drift without writing downstream changes",
+  "files": [
+    "src"
+  ],
+  "license": "MIT",
+  "private": false,
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Olwiba/genesis-sync"
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
   },
-  "author": "Olwiba",
-  "license": "MIT",
+  "type": "module",
   "dependencies": {
-    "@olwiba/dx": "0.0.2"
+    "@olwiba/dx": "^0.0.10"
   }
 }
