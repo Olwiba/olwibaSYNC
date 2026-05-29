@@ -71,6 +71,8 @@ Usage:
   genesis-sync
   genesis-sync check
   genesis-sync check <project-dir> [more-project-dirs...]
+  genesis-sync env [directory]
+  genesis-sync env --check --keys src/env/env-keys.json [directory]
 
 Optional:
   PACKAGES_TOKEN — GitHub token with read:packages scope
@@ -344,10 +346,19 @@ async function main() {
     process.exit(0);
   }
 
-  const [command = 'check', ...targetArgs] = args;
-  if (command !== 'check') {
-    throw new Error(`Unsupported command: ${command}. Only "check" is available in read-only v1.`);
+  const [command = 'check', ...commandArgs] = args;
+
+  if (command === 'env') {
+    const { runEnvCommand } = await import('./env/cli');
+    await runEnvCommand(commandArgs);
+    return;
   }
+
+  if (command !== 'check') {
+    throw new Error(`Unsupported command: ${command}. Use "check" or "env".`);
+  }
+
+  const targetArgs = commandArgs;
 
   const token = process.env.PACKAGES_TOKEN;
 

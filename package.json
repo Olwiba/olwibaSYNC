@@ -1,6 +1,6 @@
 {
   "name": "@olwiba/genesis-sync",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Olwiba",
   "repository": {
     "type": "git",
@@ -13,6 +13,10 @@
   },
   "bin": {
     "genesis-sync": "./src/index.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./env": "./src/env/index.ts"
   },
   "description": "Inspect Genesis ecosystem package drift without writing downstream changes",
   "files": [
@@ -30,6 +34,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@clack/prompts": "^0.7.0",
     "@olwiba/dx": "^0.0.10"
   }
 }
