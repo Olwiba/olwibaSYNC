@@ -1,14 +1,14 @@
 export const projectConfig = {
-  id: 'genesis-sync',
-  label: 'genesis-sync',
+  id: 'olwibaSYNC',
+  label: 'olwibaSYNC',
   brandAccent: {
-    hex: '#10b981',
+    hex: '#14b8a6',
   },
 } as const
 
 export const projectBanner = {
   segments: [
-    { text: 'genesis', colorHex: projectConfig.brandAccent.hex },
+    { text: 'olwiba', colorHex: projectConfig.brandAccent.hex },
     { text: 'sync' },
   ],
 }

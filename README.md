@@ -1,73 +1,82 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: light)" srcset="./public/genesis-sync--light.gif" />
-    <source media="(prefers-color-scheme: dark)" srcset="./public/genesis-sync.gif" />
-    <img src="./public/genesis-sync.gif" alt="genesis-sync" style="width: 100%;" />
+    <source media="(prefers-color-scheme: light)" srcset="./public/olwibaSYNC--light.gif" />
+    <source media="(prefers-color-scheme: dark)" srcset="./public/olwibaSYNC.gif" />
+    <img src="./public/olwibaSYNC.gif" alt="olwibaSYNC" style="width: 100%;" />
   </picture>
 </p>
 
 <p align="center">
-  <strong>Read-only package drift inspector for the Genesis ecosystem.</strong>
+  <strong>Check and sync @olwiba/* package versions against the live registry.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Olwiba/genesis-sync/issues/new?template=bug_report.md">🪲 Report a bug</a> ·
-  <a href="https://github.com/Olwiba/genesis-sync/issues/new?template=feature_request.md">✨ Feature request</a>
+  <a href="https://github.com/Olwiba/olwibaSYNC/issues/new?template=bug_report.md">🪲 Report a bug</a> ·
+  <a href="https://github.com/Olwiba/olwibaSYNC/issues/new?template=feature_request.md">✨ Feature request</a>
 </p>
 
 <p align="center">
   <a href="https://github.com/sponsors/Olwiba"><img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=22c55e" alt="Sponsor" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Olwiba/genesis-sync?label=license&logo=github" alt="License" /></a>
-  <a href="https://github.com/Olwiba/genesis-sync/issues"><img src="https://img.shields.io/github/issues/Olwiba/genesis-sync" alt="Issues" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Olwiba/olwibaSYNC?label=license&logo=github" alt="License" /></a>
+  <a href="https://github.com/Olwiba/olwibaSYNC/issues"><img src="https://img.shields.io/github/issues/Olwiba/olwibaSYNC" alt="Issues" /></a>
 </p>
 
 ## What This Is
 
-`@olwiba/genesis-sync` checks your project's `@olwiba/*` package versions against the live registry and reports what's out of date.
+`@olwiba/sync` checks your project's `@olwiba/*` package versions against the live registry — and can apply updates when you're ready.
 
-No writes, no installs — inspect only.
+Works with any project using Olwiba packages, including [Genesis](https://github.com/Olwiba/genesis)-spawned apps.
 
 ## Installation
 
 ```bash
-bun add @olwiba/genesis-sync
+bun add @olwiba/sync
 ```
 
 Or run without installing:
 
 ```bash
-bunx @olwiba/genesis-sync
+bunx @olwiba/sync
 ```
 
 ## Usage
 
 ```bash
-# Check the project in the current directory
-genesis-sync
+# Check cwd (read-only, default)
+bunx @olwiba/sync
+bunx @olwiba/sync check
 
-# Check an explicit path
-genesis-sync check /path/to/my-project
+# Check a specific project
+bunx @olwiba/sync check ./my-app
 
-# Check multiple paths
-genesis-sync check /path/to/project-a /path/to/project-b
+# Check then apply all recommended updates
+bunx @olwiba/sync sync
+
+# Apply updates for specific packages only
+bunx @olwiba/sync sync cn ui
+
+# Scoped project
+bunx @olwiba/sync sync -- ./my-app
+bunx @olwiba/sync sync cn -- ./my-app
 ```
 
 Private packages require a GitHub token with `read:packages` scope:
 
 ```bash
-PACKAGES_TOKEN=ghp_... genesis-sync
+PACKAGES_TOKEN=ghp_... bunx @olwiba/sync
 ```
 
 ## What's Included
 
 **Drift report** Compares installed `@olwiba/*` versions against the live registry  
 **Recommended updates** Lists exact version bumps needed per project  
-**Multi-project** Check multiple consumer projects in one command  
-**Read-only** Never modifies `package.json` or installs anything  
+**Sync** Applies updates via `bun add` (does not auto-commit)  
+**Multi-project check** Inspect multiple consumer projects in one command  
+**Package filters** Sync only the packages you name (`cn`, `ui`, `@olwiba/cn`, …)
 
 ## Ecosystem
 
-- [genesis](https://github.com/Olwiba/genesis) — the baseline being tracked
+- [genesis](https://github.com/Olwiba/genesis) — full-stack starter template
 - [@olwiba/genesis-start](https://github.com/Olwiba/genesis-start) — scaffold a new baseline
 - [@olwiba/cn](https://github.com/Olwiba/olwibaCN) — base UI primitives
 

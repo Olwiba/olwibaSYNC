@@ -1,341 +1,44 @@
 #!/usr/bin/env bun
 import { printBanner } from '@olwiba/dx';
 import { projectBanner } from './project.config';
+import { runCheck } from './commands/check';
+import { runSync } from './commands/sync';
 
 await printBanner(projectBanner);
 
-import { existsSync, readFileSync } from 'fs';
-import { basename, dirname, join, resolve } from 'path';
-
-type PackageSection = 'dependencies' | 'devDependencies' | 'peerDependencies';
-
-type PackageJson = {
-  name?: string;
-  version?: string;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  peerDependencies?: Record<string, string>;
-};
-
-type TrackedPackage = {
-  name: string;
-  version: string;
-};
-
-type UsageRecord = {
-  packageName: string;
-  section: PackageSection;
-  declaredSpec: string;
-};
-
-type InspectedManifest = {
-  label: string;
-  packageJsonPath: string;
-  packageJson: PackageJson;
-  usages: UsageRecord[];
-};
-
-type UsageStatus = 'up_to_date' | 'update_recommended' | 'ahead_of_baseline' | 'manual_review';
-
-type UsageAnalysis = {
-  status: UsageStatus;
-  currentVersion: string;
-  note: string;
-};
-
 const HELP_FLAGS = new Set(['-h', '--help']);
-const SECTION_ORDER: PackageSection[] = ['dependencies', 'devDependencies', 'peerDependencies'];
-const NPM_REGISTRY = 'https://registry.npmjs.org';
-const GITHUB_PACKAGES_REGISTRY = 'https://npm.pkg.github.com';
-
-// Public packages — on public npmjs.org, no auth needed
-const PUBLIC_ECOSYSTEM_PACKAGES = [
-  '@olwiba/cn',
-  '@olwiba/docs',
-  '@olwiba/ui',
-];
-
-// Private packages — on GitHub Packages, require PACKAGES_TOKEN
-const PRIVATE_ECOSYSTEM_PACKAGES = [
-  '@olwiba/genesis-render',
-  '@olwiba/genesis-sync',
-];
 
 function printHelp() {
   console.log(`
-genesis-sync
+olwiba-sync
 
-Read-only Genesis ecosystem drift inspection.
+@olwiba/* package drift inspection and sync.
 
 Usage:
-  genesis-sync
-  genesis-sync check
-  genesis-sync check <project-dir> [more-project-dirs...]
-  genesis-sync env [directory]
-  genesis-sync env --check --keys src/env/env-keys.json [directory]
+  olwiba-sync
+  olwiba-sync check
+  olwiba-sync check <project-dir> [more-project-dirs...]
+  olwiba-sync sync
+  olwiba-sync sync [cn] [ui] [...] [-- <project-dir>]
+  olwiba-sync env [directory]
+  olwiba-sync env --check --keys src/env/env-keys.json [directory]
+
+Commands:
+  check (default)  Read-only drift report
+  sync             Check, then apply recommended updates via bun add
+  env              Environment file utilities
+
+Package filters (sync only):
+  cn, docs, ui, dx, sync, genesis-render, or @olwiba/<name>
+  Omit filters to update all drifted tracked packages.
 
 Optional:
   PACKAGES_TOKEN — GitHub token with read:packages scope
-  Required only to include private packages (genesis-render, genesis-sync) in the baseline.
-  Public packages (cn, docs, ui) are always checked without a token.
+  Required only to include private packages (genesis-render) in the baseline.
 
 Default target:
   current working directory
 `);
-}
-
-async function fetchLatestVersion(packageName: string, registry: string, token?: string): Promise<string> {
-  const encodedName = packageName.replace('/', '%2F');
-  const url = `${registry}/${encodedName}`;
-
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.npm.install-v1+json',
-  };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(url, { headers });
-  } catch (error) {
-    throw new Error(
-      `Network error fetching ${packageName} from registry: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      `Registry returned HTTP ${response.status} for ${packageName}.\n` +
-      `Check that the package exists at ${registry}${token ? '' : ' (no auth token provided)'}.`
-    );
-  }
-
-  const data = await response.json() as { 'dist-tags'?: { latest?: string } };
-  const latest = data['dist-tags']?.latest;
-
-  if (!latest) {
-    throw new Error(
-      `Could not determine latest version for ${packageName} — dist-tags.latest missing in registry response.`
-    );
-  }
-
-  return latest;
-}
-
-async function loadTrackedPackages(token?: string): Promise<Map<string, TrackedPackage>> {
-  const publicFetches = PUBLIC_ECOSYSTEM_PACKAGES.map(async (name) => {
-    const version = await fetchLatestVersion(name, NPM_REGISTRY);
-    return { name, version };
-  });
-
-  if (!token && PRIVATE_ECOSYSTEM_PACKAGES.length > 0) {
-    console.warn(`Note: PACKAGES_TOKEN not set — skipping private packages: ${PRIVATE_ECOSYSTEM_PACKAGES.join(', ')}`);
-  }
-
-  const privateFetches = token
-    ? PRIVATE_ECOSYSTEM_PACKAGES.map(async (name) => {
-        const version = await fetchLatestVersion(name, GITHUB_PACKAGES_REGISTRY, token);
-        return { name, version };
-      })
-    : [];
-
-  const results = await Promise.allSettled([...publicFetches, ...privateFetches]);
-  const trackedPackages = new Map<string, TrackedPackage>();
-
-  for (const result of results) {
-    if (result.status === 'rejected') {
-      throw new Error(result.reason instanceof Error ? result.reason.message : String(result.reason));
-    }
-    trackedPackages.set(result.value.name, result.value);
-  }
-
-  return trackedPackages;
-}
-
-function readJsonFile<T>(filePath: string): T {
-  return JSON.parse(readFileSync(filePath, 'utf-8')) as T;
-}
-
-function resolvePackageJsonPath(target: string): string {
-  const absoluteTarget = resolve(process.cwd(), target);
-  const packageJsonPath = absoluteTarget.endsWith('package.json')
-    ? absoluteTarget
-    : join(absoluteTarget, 'package.json');
-
-  if (!existsSync(packageJsonPath)) {
-    throw new Error(`No package.json found for target: ${target}`);
-  }
-
-  return packageJsonPath;
-}
-
-function inspectManifest(packageJsonPath: string, trackedPackages: Map<string, TrackedPackage>): InspectedManifest {
-  const packageJson = readJsonFile<PackageJson>(packageJsonPath);
-  const usages: UsageRecord[] = [];
-
-  for (const section of SECTION_ORDER) {
-    const declarations = packageJson[section];
-    if (!declarations) {
-      continue;
-    }
-
-    for (const [packageName, declaredSpec] of Object.entries(declarations)) {
-      if (!trackedPackages.has(packageName)) {
-        continue;
-      }
-
-      usages.push({ packageName, section, declaredSpec });
-    }
-  }
-
-  return {
-    label: packageJson.name ?? basename(dirname(packageJsonPath)),
-    packageJsonPath,
-    packageJson,
-    usages: usages.sort((left, right) => {
-      if (left.packageName === right.packageName) {
-        return SECTION_ORDER.indexOf(left.section) - SECTION_ORDER.indexOf(right.section);
-      }
-      return left.packageName.localeCompare(right.packageName);
-    }),
-  };
-}
-
-function parseExactVersion(spec: string): { major: number; minor: number; patch: number } | null {
-  if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(spec.trim())) {
-    return null;
-  }
-
-  const [core] = spec.trim().split('-');
-  const [major, minor, patch] = core.split('.').map(Number);
-  return { major, minor, patch };
-}
-
-function compareExactVersions(left: string, right: string): number {
-  const leftVersion = parseExactVersion(left);
-  const rightVersion = parseExactVersion(right);
-
-  if (!leftVersion || !rightVersion) {
-    throw new Error(`Cannot compare non-exact versions: ${left} vs ${right}`);
-  }
-
-  if (leftVersion.major !== rightVersion.major) return leftVersion.major - rightVersion.major;
-  if (leftVersion.minor !== rightVersion.minor) return leftVersion.minor - rightVersion.minor;
-  return leftVersion.patch - rightVersion.patch;
-}
-
-function analyzeUsage(declaredSpec: string, currentVersion: string): UsageAnalysis {
-  if (!parseExactVersion(declaredSpec)) {
-    return {
-      status: 'manual_review',
-      currentVersion,
-      note: `manual review: non-exact spec (${declaredSpec})`,
-    };
-  }
-
-  const comparison = compareExactVersions(declaredSpec, currentVersion);
-
-  if (comparison === 0) {
-    return { status: 'up_to_date', currentVersion, note: 'up to date' };
-  }
-
-  if (comparison < 0) {
-    return {
-      status: 'update_recommended',
-      currentVersion,
-      note: `recommended update to ${currentVersion}`,
-    };
-  }
-
-  return {
-    status: 'ahead_of_baseline',
-    currentVersion,
-    note: `declared version is newer than current registry baseline (${currentVersion})`,
-  };
-}
-
-function buildReportLine(usage: UsageRecord, analysis: UsageAnalysis): string {
-  if (analysis.status === 'up_to_date') {
-    return `- [${usage.section}] ${usage.packageName} ${usage.declaredSpec} | ${analysis.note}`;
-  }
-
-  if (analysis.status === 'update_recommended') {
-    return `- [${usage.section}] ${usage.packageName} ${usage.declaredSpec} -> ${analysis.currentVersion} | ${analysis.note}`;
-  }
-
-  return `- [${usage.section}] ${usage.packageName} ${usage.declaredSpec} | ${analysis.note}`;
-}
-
-function summarizeAnalyses(analyses: UsageAnalysis[]) {
-  return analyses.reduce(
-    (summary, analysis) => {
-      summary[analysis.status] += 1;
-      return summary;
-    },
-    { up_to_date: 0, update_recommended: 0, ahead_of_baseline: 0, manual_review: 0 },
-  );
-}
-
-function collectRecommendedUpdates(
-  manifest: InspectedManifest,
-  trackedPackages: Map<string, TrackedPackage>,
-): string[] {
-  return manifest.usages.flatMap((usage) => {
-    const trackedPackage = trackedPackages.get(usage.packageName);
-    if (!trackedPackage) return [];
-
-    const analysis = analyzeUsage(usage.declaredSpec, trackedPackage.version);
-    if (analysis.status !== 'update_recommended') return [];
-
-    return [
-      `- ${manifest.label} [${usage.section}] ${usage.packageName} ${usage.declaredSpec} -> ${trackedPackage.version}`,
-    ];
-  });
-}
-
-function renderManifestSection(
-  title: string,
-  manifests: InspectedManifest[],
-  trackedPackages: Map<string, TrackedPackage>,
-): string {
-  const lines = [title];
-
-  for (const manifest of manifests) {
-    lines.push('');
-    lines.push(manifest.label);
-    lines.push(`- manifest: ${manifest.packageJsonPath}`);
-
-    if (manifest.usages.length === 0) {
-      lines.push('- no tracked @olwiba/* or @genesis/* package usage found');
-      continue;
-    }
-
-    const analyses = manifest.usages.map((usage) => {
-      const trackedPackage = trackedPackages.get(usage.packageName);
-      if (!trackedPackage) throw new Error(`Tracked package missing for ${usage.packageName}`);
-      return analyzeUsage(usage.declaredSpec, trackedPackage.version);
-    });
-
-    const summary = summarizeAnalyses(analyses);
-    lines.push(
-      `- summary: ${summary.update_recommended} update recommended, ${summary.manual_review} manual review, ${summary.ahead_of_baseline} ahead of baseline, ${summary.up_to_date} up to date`,
-    );
-
-    manifest.usages.forEach((usage, index) => {
-      lines.push(buildReportLine(usage, analyses[index]));
-    });
-  }
-
-  return lines.join('\n');
-}
-
-function resolveConsumerTargets(args: string[]): string[] {
-  if (args.length > 0) {
-    return args.map(resolvePackageJsonPath);
-  }
-
-  return [resolvePackageJsonPath(process.cwd())];
 }
 
 async function main() {
@@ -354,72 +57,17 @@ async function main() {
     return;
   }
 
-  if (command !== 'check') {
-    throw new Error(`Unsupported command: ${command}. Use "check" or "env".`);
+  if (command === 'check') {
+    await runCheck(commandArgs);
+    return;
   }
 
-  const targetArgs = commandArgs;
-
-  const token = process.env.PACKAGES_TOKEN;
-
-  console.log('genesis-sync — read-only package drift inspection');
-  console.log('');
-  console.log('Fetching current ecosystem package versions from registry...');
-
-  const trackedPackages = await loadTrackedPackages(token);
-
-  const consumerPackageJsonPaths = resolveConsumerTargets(targetArgs);
-  const consumerManifests = consumerPackageJsonPaths
-    .map((packageJsonPath) => inspectManifest(packageJsonPath, trackedPackages))
-    .sort((left, right) => left.label.localeCompare(right.label));
-
-  const recommendations = consumerManifests.flatMap((manifest) =>
-    collectRecommendedUpdates(manifest, trackedPackages),
-  );
-
-  const compatibilityNotes = consumerManifests.flatMap((manifest) =>
-    manifest.usages.flatMap((usage) => {
-      const trackedPackage = trackedPackages.get(usage.packageName);
-      if (!trackedPackage) return [];
-
-      const analysis = analyzeUsage(usage.declaredSpec, trackedPackage.version);
-      if (analysis.status !== 'manual_review') return [];
-
-      return [
-        `- ${manifest.label} [${usage.section}] ${usage.packageName} uses ${usage.declaredSpec}; read-only v1 does not rewrite ranged or comparator-based specs`,
-      ];
-    }),
-  );
-
-  console.log('');
-  console.log('Mode: inspection only');
-  console.log('Current ecosystem package baseline (from registry):');
-  for (const trackedPackage of [...trackedPackages.values()].sort((left, right) => left.name.localeCompare(right.name))) {
-    console.log(`- ${trackedPackage.name} ${trackedPackage.version}`);
+  if (command === 'sync') {
+    await runSync(commandArgs);
+    return;
   }
 
-  console.log('');
-  console.log(renderManifestSection('Consumer project usage', consumerManifests, trackedPackages));
-
-  console.log('');
-  console.log('Recommended updates');
-  if (recommendations.length === 0) {
-    console.log('- none');
-  } else {
-    for (const rec of recommendations) {
-      console.log(rec);
-    }
-  }
-
-  console.log('');
-  console.log('Compatibility notes');
-  if (compatibilityNotes.length === 0) {
-    console.log('- none');
-  } else {
-    for (const note of compatibilityNotes) {
-      console.log(note);
-    }
-  }
+  throw new Error(`Unsupported command: ${command}. Use "check", "sync", or "env".`);
 }
 
 main().catch((error) => {
