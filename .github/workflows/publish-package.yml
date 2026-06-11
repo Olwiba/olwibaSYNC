@@ -25,6 +25,9 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+          scope: '@olwiba'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install
         run: bun install --frozen-lockfile
@@ -49,6 +52,8 @@ jobs:
           npm pack --pack-destination artifacts
 
       - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if npm view "${PKG_NAME}@${PKG_VERSION}" --registry=https://registry.npmjs.org >/dev/null 2>&1; then
             echo "Package ${PKG_NAME}@${PKG_VERSION} already exists. Skipping publish."
