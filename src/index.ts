@@ -29,12 +29,8 @@ Commands:
   env              Environment file utilities
 
 Package filters (sync only):
-  cn, docs, ui, dx, sync, genesis-render, or @olwiba/<name>
+  cn, docs, ui, dx, sync, render, or @olwiba/<name>
   Omit filters to update all drifted tracked packages.
-
-Optional:
-  PACKAGES_TOKEN — GitHub token with read:packages scope
-  Required only to include private packages (genesis-render) in the baseline.
 
 Default target:
   current working directory

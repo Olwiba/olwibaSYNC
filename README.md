@@ -25,7 +25,7 @@
 
 `@olwiba/sync` checks your project's `@olwiba/*` package versions against the live registry — and can apply updates when you're ready.
 
-Works with any project using Olwiba packages, including [Genesis](https://github.com/Olwiba/genesis)-spawned apps.
+Works with any project using Olwiba packages.
 
 ## Installation
 
@@ -60,12 +60,6 @@ bunx @olwiba/sync sync -- ./my-app
 bunx @olwiba/sync sync cn -- ./my-app
 ```
 
-Private packages require a GitHub token with `read:packages` scope:
-
-```bash
-PACKAGES_TOKEN=ghp_... bunx @olwiba/sync
-```
-
 ## What's Included
 
 **Drift report** Compares installed `@olwiba/*` versions against the live registry  
@@ -76,9 +70,9 @@ PACKAGES_TOKEN=ghp_... bunx @olwiba/sync
 
 ## Ecosystem
 
-- [genesis](https://github.com/Olwiba/genesis) — full-stack starter template
-- [@olwiba/genesis-start](https://github.com/Olwiba/genesis-start) — scaffold a new baseline
 - [@olwiba/cn](https://github.com/Olwiba/olwibaCN) — base UI primitives
+- [@olwiba/ui](https://github.com/Olwiba/olwibaUI) — app-level blocks
+- [@olwiba/render](https://github.com/Olwiba/olwibaRENDER) — JSON-to-UI rendering
 
 ## Contributing
 

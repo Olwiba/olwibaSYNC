@@ -54,9 +54,10 @@ export const PUBLIC_ECOSYSTEM_PACKAGES = [
   '@olwiba/ui',
   '@olwiba/dx',
   '@olwiba/sync',
+  '@olwiba/render',
 ];
 
-export const PRIVATE_ECOSYSTEM_PACKAGES = ['@olwiba/genesis-render'];
+export const PRIVATE_ECOSYSTEM_PACKAGES: string[] = [];
 
 export const PACKAGE_ALIASES: Record<string, string> = {
   cn: '@olwiba/cn',
@@ -64,7 +65,7 @@ export const PACKAGE_ALIASES: Record<string, string> = {
   ui: '@olwiba/ui',
   dx: '@olwiba/dx',
   sync: '@olwiba/sync',
-  'genesis-render': '@olwiba/genesis-render',
+  render: '@olwiba/render',
 };
 
 export const ALL_TRACKED_PACKAGE_NAMES = [
@@ -117,11 +118,7 @@ export async function loadTrackedPackages(token?: string): Promise<Map<string, T
     return { name, version };
   });
 
-  if (!token && PRIVATE_ECOSYSTEM_PACKAGES.length > 0) {
-    console.warn(`Note: PACKAGES_TOKEN not set — skipping private packages: ${PRIVATE_ECOSYSTEM_PACKAGES.join(', ')}`);
-  }
-
-  const privateFetches = token
+  const privateFetches = token && PRIVATE_ECOSYSTEM_PACKAGES.length > 0
     ? PRIVATE_ECOSYSTEM_PACKAGES.map(async (name) => {
         const version = await fetchLatestVersion(name, GITHUB_PACKAGES_REGISTRY, token);
         return { name, version };
@@ -358,7 +355,7 @@ export function normalizePackageFilter(token: string): string {
   const mapped = PACKAGE_ALIASES[token];
   if (!mapped) {
     throw new Error(
-      `Unknown package filter: ${token}. Use cn, docs, ui, dx, sync, genesis-render, or @olwiba/<name>.`,
+      `Unknown package filter: ${token}. Use cn, docs, ui, dx, sync, render, or @olwiba/<name>.`,
     );
   }
 
