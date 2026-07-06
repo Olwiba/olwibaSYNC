@@ -1,5 +1,19 @@
 # Changelog
 
+
+## 0.2.1
+
+### Added
+
+- `workflow_dispatch` tag input on the publish workflow for manually republishing an existing tag.
+- CHANGELOG covering 0.1.0 through 0.2.0.
+
+### Changed
+
+- Publish workflow now publishes with npm provenance attestation via OIDC trusted publishing.
+- Exempted first-party `@olwiba/*` packages from the 7-day `minimumReleaseAge` cooldown — first-party releases are consumed same-day, and the gate was blocking lockfile verification and frozen installs. Names are listed explicitly since Bun does not support scope wildcards in `minimumReleaseAgeExcludes`.
+- Removed remaining genesis branding from the README, `.env.example`, and CLI output.
+
 ## 0.2.0
 
 ### Added
