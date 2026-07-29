@@ -6,7 +6,7 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022"],
     "target": "ES2022",
-    "types": ["bun-types", "node"],
+    "types": ["bun", "node"],
     "isolatedModules": true,
     "noEmit": true,
     "skipLibCheck": true

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Typecheck and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Pinned: 1.3.6+ has a GitHub Packages resolution bug that breaks
+          # @olwiba/* installs (see nexus AGENTS.md).
+          bun-version: 1.3.5
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Test
+        run: bun test
+
+      # Not wired yet, and deliberately so: `bun run typecheck` currently fails
+      # on pre-existing breakage unrelated to any change under review — the
+      # `env` command's module is missing from the repo (src/env/cli.ts,
+      # types.ts, parse-env-example.ts, index.ts), so `olwiba-sync env` throws
+      # "Cannot find module './env/cli'" at runtime too. Add this step back in
+      # the same change that restores those files; a gate that is always red
+      # gates nothing.
+      #
+      # - name: Typecheck
+      #   run: bun run typecheck
