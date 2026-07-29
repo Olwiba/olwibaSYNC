@@ -3,6 +3,7 @@ import { printBanner } from '@olwiba/dx';
 import { projectBanner } from './project.config';
 import { runCheck } from './commands/check';
 import { runSync } from './commands/sync';
+import { runTemplate } from './commands/template';
 
 await printBanner(projectBanner);
 
@@ -22,15 +23,22 @@ Usage:
   olwiba-sync sync [cn] [ui] [...] [-- <project-dir>]
   olwiba-sync env [directory]
   olwiba-sync env --check --keys src/env/env-keys.json [directory]
+  olwiba-sync template [project-dir] [--template <path>] [--since <ref>] [--all]
 
 Commands:
-  check (default)  Read-only drift report
+  check (default)  Read-only drift report for @olwiba/* package versions
   sync             Check, then apply recommended updates via bun add
   env              Environment file utilities
+  template         Read-only file drift against the Genesis template
 
 Package filters (sync only):
   cn, docs, ui, dx, sync, render, or @olwiba/<name>
   Omit filters to update all drifted tracked packages.
+
+Template drift (template only):
+  --template <path>  Genesis checkout (default: nexus layout, or GENESIS_TEMPLATE_PATH)
+  --since <ref>      Split template changes since <ref> into adoptable vs conflicting
+  --all              List every file instead of a capped sample
 
 Default target:
   current working directory
@@ -63,7 +71,14 @@ async function main() {
     return;
   }
 
-  throw new Error(`Unsupported command: ${command}. Use "check", "sync", or "env".`);
+  if (command === 'template') {
+    await runTemplate(commandArgs);
+    return;
+  }
+
+  throw new Error(
+    `Unsupported command: ${command}. Use "check", "sync", "env", or "template".`,
+  );
 }
 
 main().catch((error) => {
