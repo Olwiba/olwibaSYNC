@@ -6,7 +6,7 @@
       "name": "@olwiba/sync",
       "dependencies": {
         "@clack/prompts": "^0.7.0",
-        "@olwiba/dx": "^0.0.10",
+        "@olwiba/dx": "0.0.23",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -44,7 +44,7 @@
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
 
-    "@olwiba/dx": ["@olwiba/dx@0.0.10", "", { "peerDependencies": { "@typescript-eslint/eslint-plugin": ">=8.0.0", "@typescript-eslint/parser": ">=8.0.0", "eslint": ">=9.0.0", "eslint-plugin-react-hooks": ">=5.0.0", "puppeteer-core": ">=22.0.0" }, "optionalPeers": ["@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint-plugin-react-hooks", "puppeteer-core"], "bin": { "dx": "dist/cli.js" } }, "sha512-YR90kH0R0IuOtikoMcgsVv3UHz6ZFIoEp8PNIW6VtO8u6F2rG/H0jZIm1Heawta5M10LsbVEt3Ly5MjJysNITA=="],
+    "@olwiba/dx": ["@olwiba/dx@0.0.23", "", { "peerDependencies": { "@typescript-eslint/eslint-plugin": ">=8.0.0", "@typescript-eslint/parser": ">=8.0.0", "eslint": ">=9.0.0", "eslint-plugin-react-hooks": ">=5.0.0", "lucide-static": ">=0.400.0", "puppeteer-core": ">=22.0.0", "sharp": ">=0.32.0" }, "optionalPeers": ["@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint-plugin-react-hooks", "lucide-static", "puppeteer-core", "sharp"], "bin": { "dx": "dist/cli.js" } }, "sha512-d/mlWesw7WwQhuxqoVAc2/DxAu4whEaHsBGoRYrWbIWrdNcW4/RyqzUtwfIk+BIFHslaMJRj+SNGUxXI5URrFQ=="],
 
     "@types/bun": ["@types/bun@1.3.14", "", { "dependencies": { "bun-types": "1.3.14" } }, "sha512-h1hFqFVcvAvD9j9K7ZW7vd82aSA+rTdznZa+5bwvCwqSB1jmmfLcbIWhOLx1/+boy/xmjgCs/OMUL8hRJSmnPw=="],
 

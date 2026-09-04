@@ -37,6 +37,6 @@
   "type": "module",
   "dependencies": {
     "@clack/prompts": "^0.7.0",
-    "@olwiba/dx": "^0.0.10"
+    "@olwiba/dx": "0.0.23"
   }
 }
