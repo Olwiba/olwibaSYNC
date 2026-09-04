@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { EnvWriteOptions } from './types';
-import { parseEnvExample } from './parse-env-example';
 
 function quoteEnvValue(value: string): string {
   if (/[\s#"'=]/.test(value)) {
@@ -12,7 +11,6 @@ function quoteEnvValue(value: string): string {
 export function writeEnvFile({ examplePath, outputPath, values }: EnvWriteOptions): void {
   const source = readFileSync(examplePath, 'utf8');
   const lines = source.replace(/\r\n/g, '\n').split('\n');
-  const specs = parseEnvExample(source);
 
   const output = lines.map((line) => {
     const trimmed = line.trim();
