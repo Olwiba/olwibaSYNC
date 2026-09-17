@@ -30,13 +30,13 @@
     "provenance": true
   },
   "scripts": {
-    "dev": "bun run src/index.ts",
+    "dev": "dx dep-check && bun run src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
   "type": "module",
   "dependencies": {
     "@clack/prompts": "^0.7.0",
-    "@olwiba/dx": "0.0.23"
+    "@olwiba/dx": "0.0.36"
   }
 }
