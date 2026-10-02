@@ -2,6 +2,13 @@
 
 
 
+
+## 0.2.3
+
+### Changed
+
+- Gate dev and build on dx dep-check
+
 ## 0.2.2
 
 ### Added
